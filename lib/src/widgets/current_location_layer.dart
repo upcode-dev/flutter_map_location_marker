@@ -97,6 +97,8 @@ class CurrentLocationLayer extends StatefulWidget {
   /// The indicators which will display when in special status.
   final LocationMarkerIndicators indicators;
 
+  final ValueChanged<LocationMarkerPosition?>? onChanged;
+
   /// Create a CurrentLocationLayer.
   CurrentLocationLayer({
     super.key,
@@ -117,6 +119,7 @@ class CurrentLocationLayer extends StatefulWidget {
     this.rotateAnimationDuration = const Duration(milliseconds: 50),
     this.rotateAnimationCurve = Curves.easeInOut,
     this.indicators = const LocationMarkerIndicators(),
+    this.onChanged,
     @Deprecated("Use 'focalPoint' instead.") Point<double>? followScreenPoint,
     @Deprecated("Use 'focalPoint' instead.")
     Point<double>? followScreenPointOffset,
@@ -205,6 +208,7 @@ class CurrentLocationLayer extends StatefulWidget {
       )
       ..add(DiagnosticsProperty('rotateAnimationCurve', rotateAnimationCurve))
       ..add(DiagnosticsProperty('indicators', indicators));
+      properties.add(ObjectFlagProperty<ValueChanged<LocationMarkerPosition?>?>.has('onChnaged', onChanged));
   }
 }
 
@@ -387,6 +391,7 @@ class _CurrentLocationLayerState extends State<CurrentLocationLayer>
             setState(() {
               _status = _Status.initialing;
               _currentPosition = null;
+              widget.onChanged?.call(_currentPosition);
             });
           }
         } else {
@@ -526,7 +531,10 @@ class _CurrentLocationLayerState extends State<CurrentLocationLayer>
     );
 
     _moveMarkerAnimationController!.addListener(() {
-      setState(() => _currentPosition = positionTween.evaluate(animation));
+      setState(() {
+        _currentPosition = positionTween.evaluate(animation);
+        widget.onChanged?.call(_currentPosition);
+      });
     });
 
     _moveMarkerAnimationController!.addStatusListener((status) {
